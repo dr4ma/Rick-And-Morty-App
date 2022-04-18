@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Rick And Morty Characters</string>
+    <string name="name">Name</string>
+    <string name="species">Species:</string>
+    <string name="gender">Gender:</string>
+    <string name="status">Status:</string>
+    <string name="location">Location:</string>
+    <string name="count_of_episodes">Count of episodes:</string>
+    <string name="no_connection">Нет подключения к интернету</string>
+</resources>
