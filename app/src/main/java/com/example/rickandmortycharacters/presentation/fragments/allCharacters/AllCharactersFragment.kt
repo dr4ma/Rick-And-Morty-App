@@ -8,14 +8,14 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.example.rickandmortycharacters.R
-import com.example.rickandmortycharacters.domain.models.ResultsItem
+import com.example.rickandmortycharacters.domain.models.retrofit.ResultsItem
 import com.example.rickandmortycharacters.databinding.FragmentAllCharactersBinding
+import com.example.rickandmortycharacters.domain.models.room.CacheModel
 import com.example.rickandmortycharacters.domain.usecase.CheckInternetConnection
-import com.example.rickandmortycharacters.presentation.activity.MainActivity
 import com.example.rickandmortycharacters.utilits.APP_ACTIVITY
+import com.example.rickandmortycharacters.utilits.KEY_CACHE
 import com.example.rickandmortycharacters.utilits.KEY_CHARACTER
 import com.example.rickandmortycharacters.utilits.showToast
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,8 +29,10 @@ class AllCharactersFragment : Fragment() {
     private lateinit var recyclerView : RecyclerView
     private lateinit var checkInternetConnection : CheckInternetConnection
     private lateinit var adapter: AllCharactersAdapter
+    private lateinit var adapterCache: AllCharactersCacheAdapter
     private lateinit var mProgressBar: ProgressBar
     private lateinit var mObserverList: Observer<List<ResultsItem>>
+    private lateinit var mObserverListCache: Observer<List<CacheModel>>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -53,19 +55,27 @@ class AllCharactersFragment : Fragment() {
 
     private fun initRecycleView(){
         adapter = AllCharactersAdapter()
-        recyclerView.adapter = adapter
+        adapterCache = AllCharactersCacheAdapter()
         checkInternetConnection.observe(APP_ACTIVITY, Observer { isConnected ->
             if(isConnected){
                 mViewModel.getAllCharacters{
                     mObserverList = Observer {
+                        recyclerView.adapter = adapter
                         adapter.setList(it)
                         switchEnableRecyclerView(true)
+                        mViewModel.insertCharacters(it)
                     }
                     mViewModel.allCharactersList.observe(APP_ACTIVITY, mObserverList)
                 }
             }
             else{
-                showToast(getString(R.string.no_connection))
+                mObserverListCache = Observer {
+                    recyclerView.adapter = adapterCache
+                    adapterCache.setListCache(it)
+                    switchEnableRecyclerView(true)
+                    showToast(getString(R.string.no_connection))
+                }
+                mViewModel.getCacheList.observe(APP_ACTIVITY, mObserverListCache)
             }
         })
     }
@@ -92,6 +102,14 @@ class AllCharactersFragment : Fragment() {
         fun clickAdapterElement(resultsItem: ResultsItem) {
             val bundle = Bundle()
             bundle.putSerializable(KEY_CHARACTER, resultsItem)
+            bundle.putBoolean(KEY_CACHE, true)
+            APP_ACTIVITY.mNavController.navigate(R.id.action_allCharactersFragment_to_singleCharacterFragment, bundle)
+        }
+
+        fun clickAdapterCache(cacheModel: CacheModel) {
+            val bundle = Bundle()
+            bundle.putSerializable(KEY_CHARACTER, cacheModel)
+            bundle.putBoolean(KEY_CACHE, false)
             APP_ACTIVITY.mNavController.navigate(R.id.action_allCharactersFragment_to_singleCharacterFragment, bundle)
         }
     }

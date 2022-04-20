@@ -4,4 +4,5 @@ import com.example.rickandmortycharacters.presentation.activity.MainActivity
 
 const val BASE_URL = "https://rickandmortyapi.com/api/"
 const val KEY_CHARACTER = "character"
+const val KEY_CACHE = "cache"
 lateinit var APP_ACTIVITY :MainActivity

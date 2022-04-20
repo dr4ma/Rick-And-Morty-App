@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.rickandmortycharacters.R
-import com.example.rickandmortycharacters.domain.models.ResultsItem
+import com.example.rickandmortycharacters.domain.models.retrofit.ResultsItem
 import com.example.rickandmortycharacters.utilits.downloadIcon
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.recycler_item.view.*
@@ -29,10 +29,10 @@ class AllCharactersAdapter : RecyclerView.Adapter<AllCharactersAdapter.AllCharac
     }
 
     override fun onBindViewHolder(holder: AllCharactersViewHolder, position: Int) {
-        holder.name.text = listAll[position].name
-        holder.race.text = listAll[position].species
-        holder.sex.text = listAll[position].gender
-        downloadIcon(holder.icon, listAll[position].image)
+            holder.name.text = listAll[position].name
+            holder.race.text = listAll[position].species
+            holder.sex.text = listAll[position].gender
+            downloadIcon(holder.icon, listAll[position].image)
     }
     override fun onViewAttachedToWindow(holder: AllCharactersViewHolder) {
         holder.itemView.setOnClickListener {

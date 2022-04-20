@@ -1,4 +1,4 @@
-package com.example.rickandmortycharacters.domain.models
+package com.example.rickandmortycharacters.domain.models.retrofit
 
 data class Info(val next: String = "",
                 val pages: Int = 0,

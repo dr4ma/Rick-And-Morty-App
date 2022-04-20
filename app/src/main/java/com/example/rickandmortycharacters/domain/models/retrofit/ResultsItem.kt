@@ -1,4 +1,4 @@
-package com.example.rickandmortycharacters.domain.models
+package com.example.rickandmortycharacters.domain.models.retrofit
 
 import java.io.Serializable
 

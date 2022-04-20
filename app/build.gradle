@@ -76,6 +76,18 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.0.0'
     testImplementation 'org.mockito:mockito-inline:4.0.0'
 
+    // Room
+    def roomVersion = "2.4.2"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    annotationProcessor("androidx.room:room-compiler:$roomVersion")
+    kapt("androidx.room:room-compiler:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    implementation("androidx.room:room-rxjava2:$roomVersion")
+    implementation("androidx.room:room-rxjava3:$roomVersion")
+    implementation("androidx.room:room-guava:$roomVersion")
+    testImplementation("androidx.room:room-testing:$roomVersion")
+    implementation("androidx.room:room-paging:2.5.0-alpha01")
+
     // Circle ImageView
     implementation 'de.hdodenhof:circleimageview:3.1.0'
 

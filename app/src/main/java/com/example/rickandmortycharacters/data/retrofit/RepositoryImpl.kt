@@ -1,6 +1,6 @@
 package com.example.rickandmortycharacters.data.retrofit
 
-import com.example.rickandmortycharacters.domain.models.Character
+import com.example.rickandmortycharacters.domain.models.retrofit.Character
 import com.example.rickandmortycharacters.domain.repository.Repository
 import retrofit2.Response
 
