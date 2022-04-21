@@ -6,6 +6,8 @@ import com.example.rickandmortycharacters.domain.models.room.CacheModel
 interface DatabaseRepository {
 
     val allCharacters: LiveData<List<CacheModel>>
-    suspend fun insert(characters:List<CacheModel>, onSuccess:() -> Unit)
+
+    suspend fun insert(characters: List<CacheModel>, onSuccess: () -> Unit)
+
     suspend fun delete(onSuccess: () -> Unit)
 }

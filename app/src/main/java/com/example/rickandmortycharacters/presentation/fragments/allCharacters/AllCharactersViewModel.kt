@@ -27,6 +27,7 @@ class AllCharactersViewModel @Inject constructor(
 
     fun getAllCharacters(onSuccess: () -> Unit) {
         viewModelScope.launch {
+            // for eliminate the error java.net.sockettimeoutexception: timeout
             try {
                 allCharactersList.value = repo.getAllCharacters()
             }
@@ -51,7 +52,6 @@ class AllCharactersViewModel @Inject constructor(
                 )
                 cacheList.add(cacheModel)
             }
-
             // for eliminate the error java.util.concurrentmodificationexception
             val newList:List<CacheModel> = ArrayList<CacheModel>(cacheList)
 

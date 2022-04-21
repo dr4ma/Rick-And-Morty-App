@@ -15,11 +15,13 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 class RoomModule {
 
+    @Singleton
     @Provides
     fun provideRoomDatabase(context: Application): RoomDatabase{
         return RoomDatabase.getInstance(context)
     }
 
+    @Singleton
     @Provides
     fun provideDao(roomDatabase: RoomDatabase):RoomDao{
         return roomDatabase.getRoomDao()

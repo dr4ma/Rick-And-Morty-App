@@ -21,9 +21,6 @@ class AllCharactersCacheAdapter : RecyclerView.Adapter<AllCharactersCacheAdapter
         val name: TextView = view.character_name
         val race: TextView = view.character_race
         val sex: TextView = view.character_sex
-        val icon: CircleImageView = view.character_icon
-        val container: CardView = view.container
-
     }
 
     override fun onCreateViewHolder(
@@ -42,7 +39,6 @@ class AllCharactersCacheAdapter : RecyclerView.Adapter<AllCharactersCacheAdapter
         holder.name.text = listCache[position].name
         holder.race.text = listCache[position].species
         holder.sex.text = listCache[position].gender
-
     }
 
     override fun onViewAttachedToWindow(holder: AllCharactersCacheAdapter.AllCharactersCacheViewHolder) {

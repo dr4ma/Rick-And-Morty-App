@@ -18,25 +18,26 @@ class AllCharactersAdapter : RecyclerView.Adapter<AllCharactersAdapter.AllCharac
 
     private var listAll = mutableListOf<ResultsItem>()
 
-    class AllCharactersViewHolder(view:View):RecyclerView.ViewHolder(view){
+    class AllCharactersViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val name: TextView = view.character_name
         val race: TextView = view.character_race
         val sex: TextView = view.character_sex
         val icon: CircleImageView = view.character_icon
-        val container: CardView = view.container
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AllCharactersViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.recycler_item, parent, false)
+        val view =
+            LayoutInflater.from(parent.context).inflate(R.layout.recycler_item, parent, false)
         return AllCharactersViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: AllCharactersViewHolder, position: Int) {
-            holder.name.text = listAll[position].name
-            holder.race.text = listAll[position].species
-            holder.sex.text = listAll[position].gender
-            downloadIcon(holder.icon, listAll[position].image)
+        holder.name.text = listAll[position].name
+        holder.race.text = listAll[position].species
+        holder.sex.text = listAll[position].gender
+        downloadIcon(holder.icon, listAll[position].image)
     }
+
     override fun onViewAttachedToWindow(holder: AllCharactersViewHolder) {
         holder.itemView.setOnClickListener {
             AllCharactersFragment.clickAdapterElement(listAll[holder.adapterPosition])
@@ -51,8 +52,9 @@ class AllCharactersAdapter : RecyclerView.Adapter<AllCharactersAdapter.AllCharac
     override fun getItemCount(): Int {
         return listAll.size
     }
+
     @SuppressLint("NotifyDataSetChanged")
-    fun setList(list : List<ResultsItem>){
+    fun setList(list: List<ResultsItem>) {
         listAll.clear()
         listAll.addAll(list)
         notifyDataSetChanged()

@@ -1,6 +1,5 @@
 package com.example.rickandmortycharacters.utilits
 
-import android.content.Context
 import android.widget.Toast
 import com.example.rickandmortycharacters.R
 import com.squareup.picasso.Picasso
