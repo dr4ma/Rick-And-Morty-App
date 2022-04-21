@@ -4,7 +4,9 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.rickandmortycharacters.R
 import com.example.rickandmortycharacters.domain.models.retrofit.ResultsItem
@@ -21,6 +23,7 @@ class AllCharactersAdapter : RecyclerView.Adapter<AllCharactersAdapter.AllCharac
         val race: TextView = view.character_race
         val sex: TextView = view.character_sex
         val icon: CircleImageView = view.character_icon
+        val container: CardView = view.container
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AllCharactersViewHolder {

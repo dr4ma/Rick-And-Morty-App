@@ -1,7 +1,7 @@
 package com.example.rickandmortycharacters.di
 
-import com.example.rickandmortycharacters.data.room.DatabaseRepository
-import com.example.rickandmortycharacters.domain.repository.Repository
+import com.example.rickandmortycharacters.domain.repository.DatabaseRepository
+import com.example.rickandmortycharacters.domain.repository.RetrofitRepository
 import com.example.rickandmortycharacters.domain.usecase.CacheDataInDatabaseUseCase
 import com.example.rickandmortycharacters.domain.usecase.GetAllCharactersUseCase
 import dagger.Module
@@ -14,8 +14,8 @@ import dagger.hilt.android.components.ViewModelComponent
 class DomainModule {
 
     @Provides
-    fun provideGetAllCharacters(repository: Repository): GetAllCharactersUseCase{
-        return GetAllCharactersUseCase(repository = repository)
+    fun provideGetAllCharacters(retrofitRepository: RetrofitRepository): GetAllCharactersUseCase{
+        return GetAllCharactersUseCase(retrofitRepository = retrofitRepository)
     }
 
     @Provides

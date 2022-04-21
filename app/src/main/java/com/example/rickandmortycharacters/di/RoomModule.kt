@@ -1,11 +1,10 @@
 package com.example.rickandmortycharacters.di
 
 import android.app.Application
-import android.content.Context
-import com.example.rickandmortycharacters.data.room.DatabaseRepository
+import com.example.rickandmortycharacters.domain.repository.DatabaseRepository
 import com.example.rickandmortycharacters.data.room.RoomDao
 import com.example.rickandmortycharacters.data.room.RoomDatabase
-import com.example.rickandmortycharacters.data.room.RoomRepository
+import com.example.rickandmortycharacters.data.room.RoomRepositoryImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,8 +27,8 @@ class RoomModule {
 
     @Singleton
     @Provides
-    fun provideRoomRepo(dao: RoomDao) : DatabaseRepository{
-        return RoomRepository(dao)
+    fun provideRoomRepo(dao: RoomDao) : DatabaseRepository {
+        return RoomRepositoryImpl(dao)
     }
 
 }

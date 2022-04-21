@@ -3,7 +3,7 @@ package com.example.rickandmortycharacters.domain.usecase
 import com.example.rickandmortycharacters.domain.models.retrofit.Location
 import com.example.rickandmortycharacters.domain.models.retrofit.Origin
 import com.example.rickandmortycharacters.domain.models.retrofit.ResultsItem
-import com.example.rickandmortycharacters.domain.repository.Repository
+import com.example.rickandmortycharacters.domain.repository.RetrofitRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -13,7 +13,7 @@ class GetAllCharactersUseCaseTest {
 
     @Test
     suspend fun shouldReturnDataAsInRepository() {
-        val repository = mock<Repository>()
+        val repository = mock<RetrofitRepository>()
 
         val episodes = mutableListOf<String>()
         val results = mutableListOf<ResultsItem>()
@@ -39,7 +39,7 @@ class GetAllCharactersUseCaseTest {
 
         Mockito.`when`(repository.getAllCharacters().body()?.results!!).thenReturn(results)
 
-        val useCase = GetAllCharactersUseCase(repository = repository)
+        val useCase = GetAllCharactersUseCase(retrofitRepository = repository)
         val actual = useCase.getAllCharacters()
         val expected = results
 

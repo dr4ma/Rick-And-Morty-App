@@ -23,11 +23,11 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class AllCharactersFragment : Fragment() {
 
-    private var binding : FragmentAllCharactersBinding? = null
+    private var binding: FragmentAllCharactersBinding? = null
     private val mBinding get() = binding!!
-    private val mViewModel : AllCharactersViewModel by viewModels()
-    private lateinit var recyclerView : RecyclerView
-    private lateinit var checkInternetConnection : CheckInternetConnection
+    private val mViewModel: AllCharactersViewModel by viewModels()
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var checkInternetConnection: CheckInternetConnection
     private lateinit var adapter: AllCharactersAdapter
     private lateinit var adapterCache: AllCharactersCacheAdapter
     private lateinit var mProgressBar: ProgressBar
@@ -42,6 +42,12 @@ class AllCharactersFragment : Fragment() {
         return mBinding.root
     }
 
+    override fun onStop() {
+        super.onStop()
+        mViewModel.getCacheList.removeObserver(mObserverListCache)
+        mViewModel.allCharactersList.removeObserver(mObserverList)
+    }
+
     override fun onStart() {
         super.onStart()
         APP_ACTIVITY.supportActionBar?.setDisplayHomeAsUpEnabled(false)
@@ -49,39 +55,48 @@ class AllCharactersFragment : Fragment() {
         mProgressBar = mBinding.progressBar
         recyclerView = mBinding.charactersRecyclerView
         checkInternetConnection = CheckInternetConnection()
+        adapter = AllCharactersAdapter()
+        adapterCache = AllCharactersCacheAdapter()
         switchEnableRecyclerView(false)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        initObservers()
         initRecycleView()
     }
 
-    private fun initRecycleView(){
-        adapter = AllCharactersAdapter()
-        adapterCache = AllCharactersCacheAdapter()
+    private fun initObservers(){
+        mObserverList = Observer {
+            recyclerView.adapter = adapter
+            adapter.setList(it)
+            switchEnableRecyclerView(true)
+            mViewModel.insertCharacters(it)
+        }
+        mObserverListCache = Observer {
+            recyclerView.adapter = adapterCache
+            adapterCache.setListCache(it)
+            switchEnableRecyclerView(true)
+            showToast(getString(R.string.no_connection))
+        }
+    }
+
+    private fun initRecycleView() {
         checkInternetConnection.observe(APP_ACTIVITY, Observer { isConnected ->
-            if(isConnected){
-                mViewModel.getAllCharacters{
-                    mObserverList = Observer {
-                        recyclerView.adapter = adapter
-                        adapter.setList(it)
-                        switchEnableRecyclerView(true)
-                        mViewModel.insertCharacters(it)
-                    }
+            if (isConnected) {
+                mViewModel.getAllCharacters {
+                    mViewModel.getCacheList.removeObserver(mObserverListCache)
                     mViewModel.allCharactersList.observe(APP_ACTIVITY, mObserverList)
                 }
-            }
-            else{
-                mObserverListCache = Observer {
-                    recyclerView.adapter = adapterCache
-                    adapterCache.setListCache(it)
-                    switchEnableRecyclerView(true)
-                    showToast(getString(R.string.no_connection))
-                }
+            } else {
+                mViewModel.allCharactersList.removeObserver(mObserverList)
                 mViewModel.getCacheList.observe(APP_ACTIVITY, mObserverListCache)
             }
         })
     }
 
-    private fun switchEnableRecyclerView(load : Boolean){
-        when(load){
+    private fun switchEnableRecyclerView(load: Boolean) {
+        when (load) {
             true -> {
                 mProgressBar.visibility = View.INVISIBLE
                 recyclerView.visibility = View.VISIBLE
@@ -103,14 +118,20 @@ class AllCharactersFragment : Fragment() {
             val bundle = Bundle()
             bundle.putSerializable(KEY_CHARACTER, resultsItem)
             bundle.putBoolean(KEY_CACHE, true)
-            APP_ACTIVITY.mNavController.navigate(R.id.action_allCharactersFragment_to_singleCharacterFragment, bundle)
+            APP_ACTIVITY.mNavController.navigate(
+                R.id.action_allCharactersFragment_to_singleCharacterFragment,
+                bundle
+            )
         }
 
         fun clickAdapterCache(cacheModel: CacheModel) {
             val bundle = Bundle()
             bundle.putSerializable(KEY_CHARACTER, cacheModel)
             bundle.putBoolean(KEY_CACHE, false)
-            APP_ACTIVITY.mNavController.navigate(R.id.action_allCharactersFragment_to_singleCharacterFragment, bundle)
+            APP_ACTIVITY.mNavController.navigate(
+                R.id.action_allCharactersFragment_to_singleCharacterFragment,
+                bundle
+            )
         }
     }
 

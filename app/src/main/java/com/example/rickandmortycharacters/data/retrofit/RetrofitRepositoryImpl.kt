@@ -1,10 +1,10 @@
 package com.example.rickandmortycharacters.data.retrofit
 
 import com.example.rickandmortycharacters.domain.models.retrofit.Character
-import com.example.rickandmortycharacters.domain.repository.Repository
+import com.example.rickandmortycharacters.domain.repository.RetrofitRepository
 import retrofit2.Response
 
-class RepositoryImpl : Repository {
+class RetrofitRepositoryImpl : RetrofitRepository {
 
     override suspend fun getAllCharacters() : Response<Character>{
         return RetrofitInstance.apiService.getAllCharacters()
