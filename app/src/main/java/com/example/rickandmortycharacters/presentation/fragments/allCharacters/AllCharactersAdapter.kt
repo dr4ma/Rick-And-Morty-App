@@ -57,6 +57,6 @@ class AllCharactersAdapter : RecyclerView.Adapter<AllCharactersAdapter.AllCharac
     fun setList(list: List<ResultsItem>) {
         listAll.clear()
         listAll.addAll(list)
-        notifyDataSetChanged()
+       notifyItemRangeChanged(listAll.size, list.size)
     }
 }

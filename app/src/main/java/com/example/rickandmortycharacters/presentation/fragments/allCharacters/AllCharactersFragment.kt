@@ -8,6 +8,8 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.navigation.navGraphViewModels
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.rickandmortycharacters.R
 import com.example.rickandmortycharacters.domain.models.retrofit.ResultsItem
@@ -16,19 +18,23 @@ import com.example.rickandmortycharacters.domain.models.room.CacheModel
 import com.example.rickandmortycharacters.domain.usecase.CheckInternetConnection
 import com.example.rickandmortycharacters.utilits.*
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.android.synthetic.main.fragment_all_characters.*
 
 @AndroidEntryPoint
 class AllCharactersFragment : Fragment() {
     private var binding: FragmentAllCharactersBinding? = null
     private val mBinding get() = binding!!
     private lateinit var mProgressBar: ProgressBar
+    private lateinit var mProgressBarRefresh: ProgressBar
     private lateinit var mRecyclerView: RecyclerView
 
     private lateinit var checkInternetConnection: CheckInternetConnection
     private lateinit var adapter: AllCharactersAdapter
     private lateinit var adapterCache: AllCharactersCacheAdapter
     private val mViewModel: AllCharactersViewModel by viewModels()
+    private lateinit var llm: LinearLayoutManager
 
+    private var isLoading = false
     private lateinit var mObserverList: Observer<List<ResultsItem>>
     private lateinit var mObserverListCache: Observer<List<CacheModel>>
     private lateinit var mCheckInternetConnection: Observer<Boolean>
@@ -37,22 +43,30 @@ class AllCharactersFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentAllCharactersBinding.inflate(layoutInflater, container, false)
-        return mBinding.root
+        val bindingRoot = FragmentAllCharactersBinding.inflate(layoutInflater, container, false)
+        binding = bindingRoot
+
+        mProgressBar = bindingRoot.progressBar
+        mProgressBarRefresh = bindingRoot.progressBarRefresh
+        mRecyclerView = bindingRoot.charactersRecyclerView
+
+        return bindingRoot.root
     }
 
     private fun initFields() {
-        mProgressBar = mBinding.progressBar
-        mRecyclerView = mBinding.charactersRecyclerView
-        checkInternetConnection = CheckInternetConnection()
+        llm = LinearLayoutManager(context)
+        checkInternetConnection = CheckInternetConnection(context)
         adapter = AllCharactersAdapter()
         adapterCache = AllCharactersCacheAdapter()
+        mRecyclerView.layoutManager = llm
     }
 
     private fun initObservers() {
         // observer for Retrofit result Livedata
         mObserverList = Observer { list ->
-            mRecyclerView.adapter = adapter
+            if (mRecyclerView.adapter == null) {
+                mRecyclerView.adapter = adapter
+            }
             adapter.setList(list)
             switchEnableRecyclerView(true)
             mViewModel.insertCharacters(list)
@@ -70,12 +84,35 @@ class AllCharactersFragment : Fragment() {
                     mViewModel.getCacheList.removeObserver(mObserverListCache)
                     mViewModel.allCharactersList.observe(APP_ACTIVITY, mObserverList)
                 }
+
             } else {
                 mViewModel.allCharactersList.removeObserver(mObserverList)
                 mViewModel.getCacheList.observe(APP_ACTIVITY, mObserverListCache)
                 showToast(getString(R.string.no_connection))
             }
         }
+    }
+
+    private fun initListener(){
+        mRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (dy > 0) {
+                    val visibleItemCount = llm.childCount
+                    val itemPosition = llm.findFirstCompletelyVisibleItemPosition()
+                    val total = adapter.itemCount
+                    if (!isLoading) {
+                        if ((visibleItemCount + itemPosition) >= total) {
+                            mProgressBarRefresh.visibility = View.VISIBLE
+                            isLoading = true
+                            mViewModel.getAllCharacters {
+                                mProgressBarRefresh.visibility = View.INVISIBLE
+                                isLoading = false
+                            }
+                        }
+                    }
+                }
+            }
+        })
     }
 
     private fun switchEnableRecyclerView(load: Boolean) {
@@ -98,9 +135,12 @@ class AllCharactersFragment : Fragment() {
 
         initFields()
         initObservers()
+        initListener()
         checkInternetConnection.observe(APP_ACTIVITY, mCheckInternetConnection)
         switchEnableRecyclerView(false)
+        mProgressBarRefresh.visibility = View.INVISIBLE
     }
+
 
     override fun onStop() {
         super.onStop()

@@ -5,6 +5,6 @@ import retrofit2.Response
 
 interface RetrofitRepository {
 
-    suspend fun getAllCharacters() : Response<Character>
+    suspend fun getAllCharacters(page : Int) : Response<Character>
     //suspend fun getSingleCharacter(characterId : String) : Response<Character>
 }

@@ -6,7 +6,15 @@ import javax.inject.Inject
 
 class GetAllCharactersUseCase @Inject constructor(private val retrofitRepository: RetrofitRepository) {
 
-    suspend fun getAllCharacters() : MutableList<ResultsItem>{
-        return retrofitRepository.getAllCharacters().body()?.results!!
+    private val test = mutableListOf<ResultsItem>()
+
+    suspend fun getAllCharacters(page : Int) : MutableList<ResultsItem>? {
+        val request = retrofitRepository.getAllCharacters(page)
+
+        return if(!request.isSuccessful){
+            test
+        } else{
+            retrofitRepository.getAllCharacters(page).body()?.results
+        }
     }
 }

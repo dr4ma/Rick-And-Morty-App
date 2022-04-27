@@ -6,8 +6,8 @@ import retrofit2.Response
 
 class RetrofitRepositoryImpl : RetrofitRepository {
 
-    override suspend fun getAllCharacters() : Response<Character>{
-        return RetrofitInstance.apiService.getAllCharacters()
+    override suspend fun getAllCharacters(page : Int) : Response<Character>{
+        return RetrofitInstance.apiService.getAllCharacters(page = page)
     }
 
 //    override suspend fun getSingleCharacter(characterId : String): Response<Character> {

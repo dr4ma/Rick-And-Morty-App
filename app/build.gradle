@@ -98,4 +98,7 @@ dependencies {
 
     // Picasso
     implementation 'com.squareup.picasso:picasso:2.71828'
+
+    //SwipyRefreshLayout
+    implementation 'com.github.omadahealth:swipy:1.2.3@aar'
 }

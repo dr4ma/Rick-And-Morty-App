@@ -1,16 +1,14 @@
 package com.example.rickandmortycharacters.presentation.fragments.allCharacters
 
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.rickandmortycharacters.domain.models.room.CacheModel
 import com.example.rickandmortycharacters.domain.models.retrofit.ResultsItem
 import com.example.rickandmortycharacters.domain.usecase.CacheDataInDatabaseUseCase
 import com.example.rickandmortycharacters.domain.usecase.GetAllCharactersUseCase
 import com.example.rickandmortycharacters.utilits.APP_ACTIVITY
 import com.example.rickandmortycharacters.utilits.TAG
+import com.example.rickandmortycharacters.utilits.showToast
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,17 +19,23 @@ class AllCharactersViewModel @Inject constructor(
     private val cacheDataInDatabaseUseCase: CacheDataInDatabaseUseCase
 ) : ViewModel() {
 
+    private val sumCharacters = mutableListOf<ResultsItem>()
     val allCharactersList: MutableLiveData<MutableList<ResultsItem>> = MutableLiveData()
+    private var page = 0
     private val cacheList = arrayListOf<CacheModel>()
+    var firstLoad = false
     val getCacheList = cacheDataInDatabaseUseCase.getCacheList
 
     fun getAllCharacters(onSuccess: () -> Unit) {
+        page++
         viewModelScope.launch {
             // for eliminate the error java.net.sockettimeoutexception: timeout
             try {
-                allCharactersList.value = repo.getAllCharacters()
-            }
-            catch (e : Exception){
+                repo.getAllCharacters(page = page)?.let {
+                    sumCharacters.addAll(it)
+                }
+                allCharactersList.value = sumCharacters
+            } catch (e: Exception) {
                 Log.e(TAG, e.message.toString())
             }
         }
@@ -53,18 +57,18 @@ class AllCharactersViewModel @Inject constructor(
                 cacheList.add(cacheModel)
             }
             // for eliminate the error java.util.concurrentmodificationexception
-            val newList:List<CacheModel> = ArrayList<CacheModel>(cacheList)
+            val newList: List<CacheModel> = ArrayList<CacheModel>(cacheList)
 
-            cacheDataInDatabaseUseCase.insertData(newList){
+            cacheDataInDatabaseUseCase.insertData(newList) {
                 Log.i(TAG, "insert was successful")
             }
             cacheList.clear()
         }
     }
 
-    private fun deleteCharacters(){
+    private fun deleteCharacters() {
         viewModelScope.launch {
-            cacheDataInDatabaseUseCase.deleteData(){
+            cacheDataInDatabaseUseCase.deleteData() {
                 Log.i(TAG, "delete was successful")
             }
         }

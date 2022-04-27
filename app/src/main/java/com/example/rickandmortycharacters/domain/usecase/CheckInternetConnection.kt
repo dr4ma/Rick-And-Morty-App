@@ -1,6 +1,7 @@
 package com.example.rickandmortycharacters.domain.usecase
 
 import android.annotation.TargetApi
+import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -10,10 +11,9 @@ import android.os.Build
 import androidx.lifecycle.LiveData
 import com.example.rickandmortycharacters.utilits.APP_ACTIVITY
 
-class CheckInternetConnection: LiveData<Boolean>() {
+class CheckInternetConnection(val context: Context?): LiveData<Boolean>() {
     private var connectivityManager: ConnectivityManager =
-        APP_ACTIVITY.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
+        context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
 
     override fun onActive() {
@@ -27,7 +27,7 @@ class CheckInternetConnection: LiveData<Boolean>() {
                 lollipopNetworkRequest()
             }
             else -> {
-                APP_ACTIVITY.registerReceiver(
+                context?.registerReceiver(
                     networkReceiver,
                     IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
                 )
@@ -40,7 +40,7 @@ class CheckInternetConnection: LiveData<Boolean>() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             connectivityManager.unregisterNetworkCallback(networkCallback)
         } else {
-            APP_ACTIVITY.unregisterReceiver(networkReceiver)
+            context?.unregisterReceiver(networkReceiver)
         }
     }
 
