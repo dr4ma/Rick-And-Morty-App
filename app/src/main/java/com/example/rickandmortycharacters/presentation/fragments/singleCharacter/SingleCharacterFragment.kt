@@ -13,7 +13,6 @@ import com.example.rickandmortycharacters.utilits.*
 class SingleCharacterFragment : Fragment() {
 
     private var binding: FragmentSingleCharacterBinding? = null
-    private val mBinding get() = binding!!
     private lateinit var mCurrentCharacter: ResultsItem
     private lateinit var mCurrentCharacterCache: CacheModel
     private var mCharacterType: String = ""
@@ -22,8 +21,10 @@ class SingleCharacterFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentSingleCharacterBinding.inflate(layoutInflater, container, false)
-        return mBinding.root
+        val bindingRoot = FragmentSingleCharacterBinding.inflate(layoutInflater, container, false)
+        binding = bindingRoot
+
+        return bindingRoot.root
     }
 
     override fun onStart() {
@@ -36,7 +37,7 @@ class SingleCharacterFragment : Fragment() {
     }
 
     private fun initData() {
-        mBinding.apply {
+        binding?.apply {
             when (mCharacterType) {
                 TYPE_RETROFIT -> {
                     mCurrentCharacter = arguments?.getSerializable(KEY_CHARACTER) as ResultsItem

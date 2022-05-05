@@ -20,11 +20,12 @@ class AllCharactersViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val sumCharacters = mutableListOf<ResultsItem>()
-    val allCharactersList: MutableLiveData<MutableList<ResultsItem>> = MutableLiveData()
+    private val allCharactersList: MutableLiveData<MutableList<ResultsItem>> = MutableLiveData()
+    val resultCharactersList : LiveData<MutableList<ResultsItem>> = allCharactersList
     private var page = 0
     private val cacheList = arrayListOf<CacheModel>()
-    var firstLoad = false
-    val getCacheList = cacheDataInDatabaseUseCase.getCacheList
+    private val getCacheList = cacheDataInDatabaseUseCase.getCacheList
+    val resultCacheList = getCacheList
 
     fun getAllCharacters(onSuccess: () -> Unit) {
         page++

@@ -23,7 +23,6 @@ import kotlinx.android.synthetic.main.fragment_all_characters.*
 @AndroidEntryPoint
 class AllCharactersFragment : Fragment() {
     private var binding: FragmentAllCharactersBinding? = null
-    private val mBinding get() = binding!!
     private lateinit var mProgressBar: ProgressBar
     private lateinit var mProgressBarRefresh: ProgressBar
     private lateinit var mRecyclerView: RecyclerView
@@ -46,10 +45,11 @@ class AllCharactersFragment : Fragment() {
         val bindingRoot = FragmentAllCharactersBinding.inflate(layoutInflater, container, false)
         binding = bindingRoot
 
-        mProgressBar = bindingRoot.progressBar
-        mProgressBarRefresh = bindingRoot.progressBarRefresh
-        mRecyclerView = bindingRoot.charactersRecyclerView
-
+        bindingRoot.apply {
+            mProgressBar = progressBar
+            mProgressBarRefresh = progressBarRefresh
+            mRecyclerView = charactersRecyclerView
+        }
         return bindingRoot.root
     }
 
@@ -81,13 +81,13 @@ class AllCharactersFragment : Fragment() {
         mCheckInternetConnection = Observer { isConnected ->
             if (isConnected) {
                 mViewModel.getAllCharacters {
-                    mViewModel.getCacheList.removeObserver(mObserverListCache)
-                    mViewModel.allCharactersList.observe(APP_ACTIVITY, mObserverList)
+                    mViewModel.resultCacheList.removeObserver(mObserverListCache)
+                    mViewModel.resultCharactersList.observe(APP_ACTIVITY, mObserverList)
                 }
 
             } else {
-                mViewModel.allCharactersList.removeObserver(mObserverList)
-                mViewModel.getCacheList.observe(APP_ACTIVITY, mObserverListCache)
+                mViewModel.resultCharactersList.removeObserver(mObserverList)
+                mViewModel.resultCacheList.observe(APP_ACTIVITY, mObserverListCache)
                 showToast(getString(R.string.no_connection))
             }
         }
@@ -144,14 +144,10 @@ class AllCharactersFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
-        mViewModel.getCacheList.removeObserver(mObserverListCache)
-        mViewModel.allCharactersList.removeObserver(mObserverList)
+        mViewModel.resultCacheList.removeObserver(mObserverListCache)
+        mViewModel.resultCharactersList.removeObserver(mObserverList)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        checkInternetConnection.removeObserver(mCheckInternetConnection)
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()
