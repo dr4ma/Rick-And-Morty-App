@@ -1,42 +1,44 @@
 package com.example.rickandmortycharacters.presentation.fragments.allCharacters
 
 import android.os.Bundle
+import android.view.*
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.ProgressBar
-import androidx.fragment.app.viewModels
+import androidx.appcompat.widget.SearchView
+import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.Observer
-import androidx.navigation.navGraphViewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.rickandmortycharacters.R
 import com.example.rickandmortycharacters.domain.models.retrofit.ResultsItem
 import com.example.rickandmortycharacters.databinding.FragmentAllCharactersBinding
 import com.example.rickandmortycharacters.domain.models.room.CacheModel
-import com.example.rickandmortycharacters.domain.usecase.CheckInternetConnection
+import com.example.rickandmortycharacters.presentation.fragments.allCharacters.adapters.AllCharactersAdapter
+import com.example.rickandmortycharacters.presentation.fragments.allCharacters.adapters.AllCharactersCacheAdapter
+import com.example.rickandmortycharacters.presentation.fragments.allCharacters.viewModel.AllCharactersViewModel
+import com.example.rickandmortycharacters.presentation.fragments.allCharacters.viewModel.AllCharactersViewModelFactory
 import com.example.rickandmortycharacters.utilits.*
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_all_characters.*
 
-@AndroidEntryPoint
-class AllCharactersFragment : Fragment() {
+class AllCharactersFragment : Fragment(), AllCharactersAdapter.OnItemClickListener,
+    AllCharactersCacheAdapter.OnItemClickListener {
     private var binding: FragmentAllCharactersBinding? = null
     private lateinit var mProgressBar: ProgressBar
     private lateinit var mProgressBarRefresh: ProgressBar
     private lateinit var mRecyclerView: RecyclerView
+    private lateinit var mToolbar: Toolbar
 
-    private lateinit var checkInternetConnection: CheckInternetConnection
-    private lateinit var adapter: AllCharactersAdapter
-    private lateinit var adapterCache: AllCharactersCacheAdapter
-    private val mViewModel: AllCharactersViewModel by viewModels()
+    private lateinit var mViewModel: AllCharactersViewModel
+    private lateinit var mAdapter: AllCharactersAdapter
+    private lateinit var mAdapterCache: AllCharactersCacheAdapter
     private lateinit var llm: LinearLayoutManager
 
     private var isLoading = false
+    private var connectionChanged = false
+    private var isSearching = false
+    private var isConnected = true
     private lateinit var mObserverList: Observer<List<ResultsItem>>
     private lateinit var mObserverListCache: Observer<List<CacheModel>>
-    private lateinit var mCheckInternetConnection: Observer<Boolean>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,63 +51,133 @@ class AllCharactersFragment : Fragment() {
             mProgressBar = progressBar
             mProgressBarRefresh = progressBarRefresh
             mRecyclerView = charactersRecyclerView
+            mToolbar = toolbar
         }
+
         return bindingRoot.root
     }
 
+    override fun onStart() {
+        super.onStart()
+
+        initFields()
+        initObservers()
+        initScrollListener()
+        checkConnection()
+        observNetworkConnection()
+    }
+
     private fun initFields() {
+        initToolbar()
         llm = LinearLayoutManager(context)
-        checkInternetConnection = CheckInternetConnection(context)
-        adapter = AllCharactersAdapter()
-        adapterCache = AllCharactersCacheAdapter()
+        mAdapter = AllCharactersAdapter(this)
+        mAdapterCache = AllCharactersCacheAdapter(this)
         mRecyclerView.layoutManager = llm
+        mRecyclerView.isNestedScrollingEnabled = false
+        mProgressBarRefresh.visibility = View.INVISIBLE
+        mViewModel = ViewModelProvider(this, AllCharactersViewModelFactory())[AllCharactersViewModel::class.java]
+        mAdapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+    }
+
+    private fun initToolbar() {
+        mToolbar.title = getString(R.string.app_name)
+        mToolbar.menu
+                .findItem(R.id.action_search)
+                .actionView
+                .let { it as SearchView }
+                .setOnQueryTextListener(SearchViewListener {
+                    initSearch(it)
+                })
+    }
+
+    private fun initSearch(text : String){
+        isSearching = text.isNotEmpty()
+        if(isConnected){
+            mViewModel.initSearchCharacter(text) { searchList ->
+                mAdapter.setData(searchList)
+            }
+        }
+        else{
+            mViewModel.initSearchCacheCharacter(text) { searchList ->
+                mAdapterCache.setListCache(searchList)
+            }
+        }
     }
 
     private fun initObservers() {
         // observer for Retrofit result Livedata
         mObserverList = Observer { list ->
             if (mRecyclerView.adapter == null) {
-                mRecyclerView.adapter = adapter
+                mRecyclerView.adapter = mAdapter
             }
-            adapter.setList(list)
-            switchEnableRecyclerView(true)
+            mAdapter.setData(list)
             mViewModel.insertCharacters(list)
+            mProgressBar.visibility = View.INVISIBLE
         }
         // observer for Room result Livedata
         mObserverListCache = Observer { list ->
-            mRecyclerView.adapter = adapterCache
-            adapterCache.setListCache(list)
-            switchEnableRecyclerView(true)
+            mRecyclerView.adapter = mAdapterCache
+            mAdapterCache.setListCache(list)
+            mProgressBar.visibility = View.INVISIBLE
         }
-        // observer for connection Livedata
-        mCheckInternetConnection = Observer { isConnected ->
-            if (isConnected) {
+    }
+
+    private fun observNetworkConnection() {
+        mViewModel.observConnection { status ->
+            if (status == StatusConnection.UNAVAILABLE || status == StatusConnection.LOST) {
+                connectionChanged = true
+                isConnected = false
+                mViewModel.resultCharactersList.removeObserver(mObserverList)
+                mViewModel.resultCacheList.observe(APP_ACTIVITY, mObserverListCache)
+                showSnackBar(mRecyclerView, getString(R.string.no_connection), R.color.colorRed)
+            } else if (status == StatusConnection.AVAILABLE) {
+                if (connectionChanged) {
+                    connectionChanged = false
+                    showSnackBar(mRecyclerView, getString(R.string.connected), R.color.colorGreen)
+                }
+                isConnected = true
                 mViewModel.getAllCharacters {
+                    mRecyclerView.adapter = mAdapter
                     mViewModel.resultCacheList.removeObserver(mObserverListCache)
                     mViewModel.resultCharactersList.observe(APP_ACTIVITY, mObserverList)
                 }
-
-            } else {
-                mViewModel.resultCharactersList.removeObserver(mObserverList)
-                mViewModel.resultCacheList.observe(APP_ACTIVITY, mObserverListCache)
-                showToast(getString(R.string.no_connection))
             }
         }
     }
 
-    private fun initListener(){
+    private fun checkConnection() {
+        // Единоразовая проверка на интернет, так как в связи с багом блок override fun onUnavailable() не срабатывает
+        // при первом запуске приложения
+        mViewModel.checkConnection {
+            isConnected = false
+            mViewModel.resultCharactersList.removeObserver(mObserverList)
+            mViewModel.resultCacheList.observe(APP_ACTIVITY, mObserverListCache)
+            mProgressBar.visibility = View.INVISIBLE
+            if (!connectionChanged) {
+                showSnackBar(mRecyclerView, getString(R.string.no_connection), R.color.colorRed)
+                connectionChanged = true
+            }
+        }
+    }
+
+    private fun initScrollListener() {
         mRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 if (dy > 0) {
                     val visibleItemCount = llm.childCount
                     val itemPosition = llm.findFirstCompletelyVisibleItemPosition()
-                    val total = adapter.itemCount
-                    if (!isLoading) {
-                        if ((visibleItemCount + itemPosition) >= total) {
-                            mProgressBarRefresh.visibility = View.VISIBLE
-                            isLoading = true
-                            mViewModel.getAllCharacters {
-                                mProgressBarRefresh.visibility = View.INVISIBLE
+                    val total = mAdapter.itemCount
+                    if(isConnected){
+                        if (!isSearching) {
+                            if ((visibleItemCount + itemPosition) > total) {
+                                if (!isLoading) {
+                                    isLoading = true
+                                    mProgressBarRefresh.visibility = View.VISIBLE
+                                    mViewModel.getAllCharacters {
+                                        mProgressBarRefresh.visibility = View.INVISIBLE
+                                    }
+                                }
+                            } else {
                                 isLoading = false
                             }
                         }
@@ -115,32 +187,25 @@ class AllCharactersFragment : Fragment() {
         })
     }
 
-    private fun switchEnableRecyclerView(load: Boolean) {
-        when (load) {
-            true -> {
-                mProgressBar.visibility = View.INVISIBLE
-                mRecyclerView.visibility = View.VISIBLE
-            }
-            false -> {
-                mProgressBar.visibility = View.VISIBLE
-                mRecyclerView.visibility = View.INVISIBLE
-            }
-        }
+    override fun onItemClickAdapter(model: ResultsItem) {
+        val bundle = Bundle()
+        bundle.putSerializable(KEY_CHARACTER, model)
+        bundle.putString(KEY_CACHE, TYPE_RETROFIT)
+        APP_ACTIVITY.mNavController.navigate(
+            R.id.action_allCharactersFragment_to_singleCharacterFragment,
+            bundle
+        )
     }
 
-    override fun onStart() {
-        super.onStart()
-        APP_ACTIVITY.supportActionBar?.setDisplayHomeAsUpEnabled(false)
-        APP_ACTIVITY.supportActionBar?.setDisplayShowHomeEnabled(false)
-
-        initFields()
-        initObservers()
-        initListener()
-        checkInternetConnection.observe(APP_ACTIVITY, mCheckInternetConnection)
-        switchEnableRecyclerView(false)
-        mProgressBarRefresh.visibility = View.INVISIBLE
+    override fun onItemClickCacheAdapter(model: CacheModel) {
+        val bundle = Bundle()
+        bundle.putSerializable(KEY_CHARACTER, model)
+        bundle.putString(KEY_CACHE, TYPE_CACHE)
+        APP_ACTIVITY.mNavController.navigate(
+            R.id.action_allCharactersFragment_to_singleCharacterFragment,
+            bundle
+        )
     }
-
 
     override fun onStop() {
         super.onStop()
@@ -153,27 +218,4 @@ class AllCharactersFragment : Fragment() {
         super.onDestroyView()
         binding = null
     }
-
-    companion object {
-        fun clickAdapterElement(resultsItem: ResultsItem) {
-            val bundle = Bundle()
-            bundle.putSerializable(KEY_CHARACTER, resultsItem)
-            bundle.putString(KEY_CACHE, TYPE_RETROFIT)
-            APP_ACTIVITY.mNavController.navigate(
-                R.id.action_allCharactersFragment_to_singleCharacterFragment,
-                bundle
-            )
-        }
-
-        fun clickAdapterCache(cacheModel: CacheModel) {
-            val bundle = Bundle()
-            bundle.putSerializable(KEY_CHARACTER, cacheModel)
-            bundle.putString(KEY_CACHE, TYPE_CACHE)
-            APP_ACTIVITY.mNavController.navigate(
-                R.id.action_allCharactersFragment_to_singleCharacterFragment,
-                bundle
-            )
-        }
-    }
-
 }

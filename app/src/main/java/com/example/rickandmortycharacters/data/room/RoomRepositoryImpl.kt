@@ -3,21 +3,23 @@ package com.example.rickandmortycharacters.data.room
 import androidx.lifecycle.LiveData
 import com.example.rickandmortycharacters.domain.models.room.CacheModel
 import com.example.rickandmortycharacters.domain.repository.DatabaseRepository
+import com.example.rickandmortycharacters.utilits.APP_ACTIVITY
 import javax.inject.Inject
 
-class RoomRepositoryImpl @Inject constructor(private val roomDao: RoomDao) : DatabaseRepository {
+class RoomRepositoryImpl : DatabaseRepository {
 
+    private val dao = RoomDatabase.getInstance(APP_ACTIVITY).getRoomDao()
 
     override val allCharacters: LiveData<List<CacheModel>>
-        get() = roomDao.getAllCharacters()
+        get() = dao.getAllCharacters()
 
     override suspend fun insert(characters: List<CacheModel>, onSuccess: () -> Unit) {
-        roomDao.insert(characters = characters)
+        dao.insert(characters = characters)
         onSuccess()
     }
 
     override suspend fun delete(onSuccess: () -> Unit) {
-        roomDao.delete()
+        dao.delete()
         onSuccess()
     }
 }

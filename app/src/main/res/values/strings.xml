@@ -7,4 +7,8 @@
     <string name="location">Location:</string>
     <string name="count_of_episodes">Count of episodes:</string>
     <string name="no_connection">Нет подключения к интернету</string>
+    <string name="cancel">Отмена</string>
+    <string name="error">Error</string>
+    <string name="connected">Подключение восстановлено</string>
+    <string name="search">Поиск</string>
 </resources>

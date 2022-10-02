@@ -2,19 +2,21 @@ package com.example.rickandmortycharacters.domain.usecase
 
 import com.example.rickandmortycharacters.domain.repository.DatabaseRepository
 import com.example.rickandmortycharacters.domain.models.room.CacheModel
-import javax.inject.Inject
+import com.example.rickandmortycharacters.domain.usecase.interfaces.CacheDataInDatabaseInterface
+import com.example.rickandmortycharacters.utilits.ServiceLocator
 
-class CacheDataInDatabaseUseCase @Inject constructor(private val databaseRepository: DatabaseRepository) {
+class CacheDataInDatabaseUseCase : CacheDataInDatabaseInterface {
 
-    val getCacheList = databaseRepository.allCharacters
+    private val databaseRepository = ServiceLocator.get(DatabaseRepository::class) as DatabaseRepository
+    override val getCacheList = databaseRepository.allCharacters
 
-    suspend fun insertData(characters: List<CacheModel>, onSuccess: () -> Unit) {
+    override suspend fun insertData(characters: List<CacheModel>, onSuccess: () -> Unit) {
         databaseRepository.insert(characters){
             onSuccess()
         }
     }
 
-    suspend fun deleteData(onSuccess: () -> Unit) {
+    override suspend fun deleteData(onSuccess: () -> Unit) {
         databaseRepository.delete(){
             onSuccess()
         }

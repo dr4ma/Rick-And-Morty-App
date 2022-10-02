@@ -10,7 +10,6 @@ import com.example.rickandmortycharacters.utilits.APP_ACTIVITY
 import dagger.hilt.EntryPoint
 import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     lateinit var mNavController: NavController

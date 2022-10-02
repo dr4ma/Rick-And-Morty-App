@@ -1,21 +1,24 @@
 package com.example.rickandmortycharacters.domain.usecase
 
-import android.util.Log
 import com.example.rickandmortycharacters.domain.models.retrofit.ResultsItem
 import com.example.rickandmortycharacters.domain.repository.RetrofitRepository
-import com.example.rickandmortycharacters.utilits.TAG
-import javax.inject.Inject
+import com.example.rickandmortycharacters.domain.usecase.interfaces.GetAllCharactersInterface
+import com.example.rickandmortycharacters.utilits.ServiceLocator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
-class GetAllCharactersUseCase @Inject constructor(private val retrofitRepository: RetrofitRepository) {
+class GetAllCharactersUseCase : GetAllCharactersInterface {
 
     private val emptyList = mutableListOf<ResultsItem>()
+    private val retrofitRepository = ServiceLocator.get(RetrofitRepository::class) as RetrofitRepository
 
-    suspend fun getAllCharacters(page : Int) : MutableList<ResultsItem>? {
+    override suspend fun getAllCharacters(page : Int) : Flow<MutableList<ResultsItem>> = flow {
         val request = retrofitRepository.getAllCharacters(page)
-        return if(!request.isSuccessful){
-            emptyList
-        } else{
-            retrofitRepository.getAllCharacters(page).body()?.results
+        if(request.isSuccessful){
+            emit(request.body()?.results ?: emptyList)
         }
-    }
+    }.flowOn(Dispatchers.IO).distinctUntilChanged()
 }
