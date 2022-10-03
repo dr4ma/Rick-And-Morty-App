@@ -95,6 +95,7 @@ class AllCharactersViewModel(
     fun checkConnection(function:() -> Unit) {
         if (!checkConnectionInMoment.check()) {
             function()
+            page = 0
         }
     }
 

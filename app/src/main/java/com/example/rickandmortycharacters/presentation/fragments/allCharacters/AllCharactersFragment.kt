@@ -10,6 +10,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.rickandmortycharacters.R
 import com.example.rickandmortycharacters.domain.models.retrofit.ResultsItem
 import com.example.rickandmortycharacters.databinding.FragmentAllCharactersBinding
@@ -19,6 +20,7 @@ import com.example.rickandmortycharacters.presentation.fragments.allCharacters.a
 import com.example.rickandmortycharacters.presentation.fragments.allCharacters.viewModel.AllCharactersViewModel
 import com.example.rickandmortycharacters.presentation.fragments.allCharacters.viewModel.AllCharactersViewModelFactory
 import com.example.rickandmortycharacters.utilits.*
+import kotlinx.android.synthetic.main.fragment_all_characters.*
 
 class AllCharactersFragment : Fragment(), AllCharactersAdapter.OnItemClickListener,
     AllCharactersCacheAdapter.OnItemClickListener {
@@ -27,6 +29,7 @@ class AllCharactersFragment : Fragment(), AllCharactersAdapter.OnItemClickListen
     private lateinit var mProgressBarRefresh: ProgressBar
     private lateinit var mRecyclerView: RecyclerView
     private lateinit var mToolbar: Toolbar
+    private lateinit var swipeLayout: SwipeRefreshLayout
 
     private lateinit var mViewModel: AllCharactersViewModel
     private lateinit var mAdapter: AllCharactersAdapter
@@ -52,6 +55,7 @@ class AllCharactersFragment : Fragment(), AllCharactersAdapter.OnItemClickListen
             mProgressBarRefresh = progressBarRefresh
             mRecyclerView = charactersRecyclerView
             mToolbar = toolbar
+            swipeLayout = refresh
         }
 
         return bindingRoot.root
@@ -77,6 +81,11 @@ class AllCharactersFragment : Fragment(), AllCharactersAdapter.OnItemClickListen
         mProgressBarRefresh.visibility = View.INVISIBLE
         mViewModel = ViewModelProvider(this, AllCharactersViewModelFactory())[AllCharactersViewModel::class.java]
         mAdapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+        swipeLayout.setOnRefreshListener {
+            mViewModel.getAllCharacters {
+               swipeLayout.isRefreshing = false
+            }
+        }
     }
 
     private fun initToolbar() {
@@ -167,8 +176,7 @@ class AllCharactersFragment : Fragment(), AllCharactersAdapter.OnItemClickListen
                     val visibleItemCount = llm.childCount
                     val itemPosition = llm.findFirstCompletelyVisibleItemPosition()
                     val total = mAdapter.itemCount
-                    if(isConnected){
-                        if (!isSearching) {
+                    if(isConnected && !isSearching){
                             if ((visibleItemCount + itemPosition) > total) {
                                 if (!isLoading) {
                                     isLoading = true
@@ -183,7 +191,6 @@ class AllCharactersFragment : Fragment(), AllCharactersAdapter.OnItemClickListen
                         }
                     }
                 }
-            }
         })
     }
 

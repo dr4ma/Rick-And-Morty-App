@@ -6,9 +6,9 @@ import kotlin.reflect.jvm.jvmName
 
 object ServiceLocator {
 
-    var serviceInstances = HashMap<String, Any>()
-    var serviceImplementationsMapping = HashMap<String, KClass<*>>()
-    var serviceInstance = Any()
+    private var serviceInstances = HashMap<String, Any>()
+    private var serviceImplementationsMapping = HashMap<String, KClass<*>>()
+    private var serviceInstance = Any()
 
     interface Service{
 
@@ -40,21 +40,21 @@ object ServiceLocator {
                 serviceInstance = clazz!!.createInstance()
             }
             catch(e : NoSuchMethodException){
-                throw IllegalArgumentException("Service without constructor$name", e)
+                throw IllegalArgumentException("Сервис без коструктора $name", e)
             }
 
             if(serviceInstance !is ServiceLocator.Service){
-                throw IllegalArgumentException("Requested service must implement IService interface")
+                throw IllegalArgumentException("Запрашиваемый сервис должен имплементировать IService")
             }
 
             serviceInstances[name] = serviceInstance
             return serviceInstance
         }
         catch (e : ClassNotFoundException){
-            throw IllegalArgumentException("Requested service class was not found: $name", e)
+            throw IllegalArgumentException("Запрашиваемый класс сервиса не был найден $name", e)
         }
         catch (e : Exception){
-            throw IllegalArgumentException("Cannot initialize requested service: $name", e)
+            throw IllegalArgumentException("Невозможно инициализировать сервис $name", e)
         }
     }
 }
